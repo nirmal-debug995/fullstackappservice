@@ -16,7 +16,7 @@ jobs:
 
       # Step 2: Start SSH agent and add private key
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.1
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.GITHUB_SSH_KEY }}
 
