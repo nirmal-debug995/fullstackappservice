@@ -15,35 +15,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup Node
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
 
       # 3. Install backend dependencies
-      - name: Install backend dependencies
+      - name: Install dependencies
         run: npm install
 
-      # 4. Build frontend (React)
-      - name: Build frontend
-        run: |
-          if [ -d "frontend" ]; then
-            cd frontend
-            npm install
-            npm run build
-            cd ..
-          fi
-
-      # 5. Copy React build to backend /build
-      - name: Copy frontend build
-        run: |
-          if [ -d "frontend/build" ]; then
-            rm -rf build
-            cp -r frontend/build ./build
-          fi
-
-      # 6. Upload artifact
+      # 4. Upload artifact for deployment
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -55,17 +37,17 @@ jobs:
     needs: build
 
     permissions:
-      id-token: write   # required for OIDC login
+      id-token: write
       contents: read
 
     steps:
-      # 7. Download build artifact
+      # 5. Download artifact
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      # 8. Login to Azure (OIDC)
+      # 6. Login to Azure (OIDC)
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -73,7 +55,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_751EA69D8E4F426B990D8C86BE4EAFB4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_456A4F0A265141BF8DA404F2547C7D9A }}
 
-      # 9. Deploy to Azure App Service
+      # 7. Deploy to Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
