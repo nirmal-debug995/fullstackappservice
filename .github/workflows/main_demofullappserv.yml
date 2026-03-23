@@ -1,36 +1,33 @@
-name: Deploy to Azure VM
+name: Deploy Fullstack App to Azure VM
 
 on:
   push:
     branches:
-      - main  # Trigger on push to main branch
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Get code from GitHub
-      - name: Checkout repository
+      # Step 1: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Load SSH key for VM
+      # Step 2: Start SSH agent and add private key
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.1
+        uses: webfactory/ssh-agent@v0.8.1
         with:
-          ssh-private-key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          ssh-private-key: ${{ secrets.GITHUB_SSH_KEY }}
 
-      # Step 3: SSH into VM and deploy
-      - name: Deploy to VM
+      # Step 3: Connect to Azure VM and deploy
+      - name: Deploy to Azure VM
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }} << 'EOF'
-            # Navigate or clone repo
-            cd /home/${{ secrets.AZURE_VM_USER }}/fullstackappservice || git clone https://github.com/nirmal-debug995/fullstackappservice.git
             cd /home/${{ secrets.AZURE_VM_USER }}/fullstackappservice
-            # Pull latest changes
+            git reset --hard
             git pull origin main
-            # Install dependencies
             npm install
-            # Start or restart app
-            pm2 restart fullstackapp || pm2 start index.js --name fullstackapp
+            npm run build
+            pm2 restart fullstackapp || pm2 start server.js --name fullstackapp --update-env
           EOF
